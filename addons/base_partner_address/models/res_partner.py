@@ -23,12 +23,6 @@ from openerp.exceptions import ValidationError
 
 CONTACTS = ['address', 'email', 'phone']
 
-ADDRESS_TYPES = [
-    ('private', 'Private'),
-    ('business', 'Business'),
-    ('other', 'Other'),
-]
-
 
 class ResPartner(models.Model):
     """Partner updates like new address handling, default values etc."""
@@ -123,15 +117,6 @@ class ResPartner(models.Model):
 
     @api.model
     def create(self, vals):
-        """Overwrite module: base.
-        Adds computed partner sequence to partner (only for company partners).
-        Set address flag if needed.
-        """
-        if vals.get('is_company', False):
-            vals['ref'] = self.env['ir.sequence'].\
-                next_by_code('res.partner') or '-'
-        if not vals.get('lang', False):
-            vals['lang'] = 'de_DE'
         for field in CONTACTS:
             field_ids = 'partner_%s_ids' % field
             if len(vals.get(field_ids, [])) == 1:
@@ -164,34 +149,6 @@ class ResPartner(models.Model):
                 if contacts:
                     contacts.unlink()
         return super(ResPartner, self).unlink()
-
-    @api.multi
-    def name_get(self):
-        """
-        Overwrite module: base.
-
-        Add address type to address name labels.
-        """
-        res = []
-        for record in self:
-            name = record.name
-            if record.parent_id and not record.is_company:
-                if self._context.get('show_email', False) or \
-                        self._context.get('lr_sale_order_view', False) and \
-                        not self._context.get('future_display_name', False):
-                    name = name
-                else:
-                    name = "%s, %s" % (record.parent_id.name, name)
-            if self._context.get('show_address'):
-                name = name + "\n" + self._display_address(
-                    record, without_company=True)
-                name = name.replace('\n\n', '\n')
-                name = name.replace('\n\n', '\n')
-            if self._context.get('show_email') and record.email:
-                email = record.email
-                name = "%s <%s>" % (name, email)
-            res.append((record.id, name))
-        return res
 
     @api.model
     def _display_address(self, partner, without_company=False):

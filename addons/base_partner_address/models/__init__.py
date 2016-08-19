@@ -18,6 +18,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
+from . import migration
 from . import res_partner_preferred
 from . import res_partner_address
 from . import res_partner_phone
